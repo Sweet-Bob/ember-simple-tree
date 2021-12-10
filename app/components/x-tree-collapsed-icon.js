@@ -1,1 +1,1 @@
-export { default } from 'ember-simple-tree/components/x-tree-collapsed-icon';
+export { default } from 'ember-simple-tree-another/components/x-tree-collapsed-icon';
