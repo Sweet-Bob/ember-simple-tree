@@ -1,5 +1,6 @@
-import Component from '@glimmer/component';
-import { action, setProperties } from '@ember/object';
+import Component                      from '@glimmer/component';
+import { action, set, get, setProperties } from '@ember/object';
+
 
 export default class TreeChildrenComponent extends Component {
   @action
@@ -13,11 +14,17 @@ export default class TreeChildrenComponent extends Component {
 
         if (children.every(x => x.isChecked)) {
           isChecked = true;
-        } else if (children.some(x => x.isChecked || x.isIndeterminate)) {
+        } else if (children.some(x => x.isIndeterminate)) {
           isIndeterminate = true;
         }
 
-        setProperties(this.args.model, { isChecked, isIndeterminate });
+        if (get(this.args.model, 'isRotate')) {
+        } else {
+          setProperties(this.args.model, {
+            isChecked,
+            isIndeterminate
+          });
+        }
       }
 
       if (this.args.updateCheckbox) {

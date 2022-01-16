@@ -73,11 +73,58 @@ export default class TreeNodeComponent extends Component {
   @action
   toggleCheck(event) {
     event.stopPropagation();
+
+    let isChecked;
+    let isIndeterminate;
+
     if (!get(this.args.model, 'isDisabled')) {
-      let isChecked = set(this.args.model, 'isChecked', !get(this.args.model, 'isChecked'));
+
+      if (get(this.args.model, 'isRotate')) {
+
+        if (this.args.model?.parentTree?.isChecked) {
+          switch (get(this.args.model, 'checkedNumber')) {
+            // unchecked, going check
+            case 0:
+              set(this.args.model, 'checkedNumber', 2);
+              isIndeterminate = set(this.args.model, 'isIndeterminate', false);
+              isChecked       = set(this.args.model, 'isChecked', true);
+              break;
+
+            // checked, going unchecked
+            default:
+              set(this.args.model, 'checkedNumber', 0);
+              set(this.args.model, 'isIndeterminate', false);
+              isChecked = set(this.args.model, 'isChecked', false);
+          }
+        } else {
+          switch (get(this.args.model, 'checkedNumber')) {
+            // unchecked, going indeterminate
+            case 0:
+              set(this.args.model, 'checkedNumber', 1);
+              isIndeterminate = set(this.args.model, 'isIndeterminate', true);
+              isChecked       = set(this.args.model, 'isChecked', null);
+              break;
+
+            // indeterminate, going checked
+            case 1:
+              set(this.args.model, 'checkedNumber', 2);
+              set(this.args.model, 'isIndeterminate', false);
+              isChecked = set(this.args.model, 'isChecked', true);
+              break;
+
+            // checked, going unchecked
+            default:
+              set(this.args.model, 'checkedNumber', 0);
+              set(this.args.model, 'isIndeterminate', false);
+              isChecked = set(this.args.model, 'isChecked', false);
+          }
+        }
+      } else {
+        isChecked = set(this.args.model, 'isChecked', !get(this.args.model, 'isChecked'));
+      }
 
       if (this.args.recursiveCheck) {
-        this.setChildCheckboxesRecursively(this.args.model, isChecked);
+        this.setChildCheckboxesRecursively(this.args.model, isChecked, isIndeterminate);
         this.args.updateCheckbox();
       }
 
@@ -93,14 +140,31 @@ export default class TreeNodeComponent extends Component {
     set(this.args.model, 'isExpanded', !this.args.model.isExpanded);
   }
 
-  setChildCheckboxesRecursively(node, isChecked) {
+  setChildCheckboxesRecursively(node, isChecked, isIndeterminate) {
     let children = get(node, 'children');
     if (children.length) {
       children.forEach(child => {
-        setProperties(child, {
-          isChecked,
-          isIndeterminate: false
-        });
+
+        if (get(this.args.model, 'isRotate')) {
+          if (isChecked) {
+            set(child, 'checkedNumber', 2);
+            set(child, 'isIndeterminate', false);
+            set(child, 'isChecked', true);
+          } else if (isIndeterminate) {
+            set(child, 'checkedNumber', 1);
+            set(child, 'isIndeterminate', true);
+            set(child, 'isChecked', null);
+          } else {
+            set(child, 'checkedNumber', 1);
+            set(child, 'isIndeterminate', true);
+            set(child, 'isChecked', null);
+          }
+        } else {
+          setProperties(child, {
+            isChecked,
+            isIndeterminate: false
+          });
+        }
 
         this.setChildCheckboxesRecursively(child, isChecked);
       });
